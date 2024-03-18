@@ -27,7 +27,7 @@ router.post("/", (req, res) => {
 });
 
 //créer un document dans la collection tasks
-router.post("/newMark", (req, res) => {
+router.post("/newTask", (req, res) => {
   Task.findOne({ title: req.body.name }).then((data) => {
     if (data === null) {
       const newTask = new Task({
@@ -50,8 +50,8 @@ router.post("/newMark", (req, res) => {
 //*afficher toutes les lists en fonction de l'utilisateur
 router.get("/:userId", (req, res) => {
   List.find({ author: req.params.userId })
-    .populate("lists")
     .populate("tasks")
+    // .populate("users")
     .then((data) => {
       if (data) {
         res.json({ result: true, data });

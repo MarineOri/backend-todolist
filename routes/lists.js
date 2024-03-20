@@ -26,9 +26,22 @@ router.post("/", (req, res) => {
   });
 });
 
+//*supprimer un document dans la collection list et task correspondant
+router.delete("/deleteList", (req, res) => {
+  List.deleteOne({ _id: req.body.listId }).then((data) => {
+    if (data) {
+      Task.deleteMany({ author: req.body.listId }).then((task) => {
+        res.json({ result: true, task });
+      });
+    } else {
+      res.json({ result: false, error: "Nothing delete" });
+    }
+  });
+});
+
 //créer un document dans la collection tasks
 router.post("/newTask", (req, res) => {
-  Task.findOne({ title: req.body.name }).then((data) => {
+  Task.findOne({ name: req.body.name }).then((data) => {
     if (data === null) {
       const newTask = new Task({
         name: req.body.name,
@@ -46,6 +59,8 @@ router.post("/newTask", (req, res) => {
     }
   });
 });
+
+//*
 
 //*afficher toutes les lists en fonction de l'utilisateur
 router.get("/:userId", (req, res) => {

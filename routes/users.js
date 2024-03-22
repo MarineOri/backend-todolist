@@ -46,4 +46,15 @@ router.post("/signin", (req, res) => {
   });
 });
 
+//*afficher toutes les utilisateurs
+router.get("/", (req, res) => {
+  User.find().then((data) => {
+    if (data) {
+      res.json({ result: true, data });
+    } else {
+      res.json({ result: false, error: "No users" });
+    }
+  });
+});
+
 module.exports = router;

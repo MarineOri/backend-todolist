@@ -31,7 +31,11 @@ router.delete("/deleteList", (req, res) => {
   List.deleteOne({ _id: req.body.listId }).then((data) => {
     if (data) {
       Task.deleteMany({ author: req.body.listId }).then((task) => {
-        res.json({ result: true, task });
+        if (task) {
+          res.json({ result: true, task });
+        } else {
+          res.json({ result: false, error: "no tasks delete" });
+        }
       });
     } else {
       res.json({ result: false, error: "Nothing delete" });
@@ -60,13 +64,24 @@ router.post("/newTask", (req, res) => {
   });
 });
 
-//*
+//*supprimer un document dans la collection task
+router.delete("/deleteTask", (req, res) => {
+  Task.deleteOne({ _id: req.body.taskId }).then((data) => {
+    if (data) {
+      List.findByIdAndUpdate(req.body.listId, {
+        $pull: { tasks: req.body.taskId },
+      }).then(res.json({ result: true, data }));
+    } else {
+      res.json({ result: false, error: "no tasks delete" });
+    }
+  });
+});
 
 //*afficher toutes les lists en fonction de l'utilisateur
 router.get("/:userId", (req, res) => {
   List.find({ author: req.params.userId })
     .populate("tasks")
-    // .populate("users")
+    .populate("author", "access")
     .then((data) => {
       if (data) {
         res.json({ result: true, data });
@@ -76,17 +91,52 @@ router.get("/:userId", (req, res) => {
     });
 });
 
-//*afficher toutes les lists en fonction de l'utilisateur
-// router.get("/:userId", (req, res) => {
-//     User.find({ author: req.params.userId })
-//       .populate("lists").populate("tasks")
-//       .then((data) => {
-//         if (data) {
-//           res.json({ result: true, data });
-//         } else {
-//           res.json({ result: false, error: "No lists" });
-//         }
-//       });
-//   });
+//*afficher toutes les taches d'une liste
+router.get("/one/:listId", (req, res) => {
+  List.findById(req.params.listId)
+    .populate("tasks")
+    .populate("author", "access")
+    .then((data) => {
+      if (data) {
+        res.json({ result: true, data });
+      } else {
+        res.json({ result: false, error: "No lists" });
+      }
+    });
+});
+
+//*partager une liste à un autre utilisateur
+router.post("/share", (req, res) => {
+  List.findById(req.body.listId).then((data) => {
+    if (data.access && data.access.includes(req.body.userId)) {
+      console.log(data.access);
+      res.json({ result: false, error: "already share" });
+    } else {
+      List.findByIdAndUpdate(req.body.listId, {
+        $push: { access: req.body.userId },
+      }).then((data) => {
+        if (data) {
+          res.json({ result: true, error: "add user" });
+        } else {
+          res.json({ result: false, error: "no found list" });
+        }
+      });
+    }
+  });
+});
+
+//*afficher toutes les listes partagés
+router.get("/share/:userId", (req, res) => {
+  List.find({ access: { $eq: req.params.userId } })
+    .populate("tasks")
+    .populate("author", "access")
+    .then((data) => {
+      if (data) {
+        res.json({ result: true, data });
+      } else {
+        res.json({ result: false, error: "No lists" });
+      }
+    });
+});
 
 module.exports = router;

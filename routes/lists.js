@@ -6,22 +6,18 @@ const User = require("../models/users");
 
 //créer un document dans la collection lists
 router.post("/", (req, res) => {
-  List.findOne({ title: req.body.title }).then((data) => {
-    if (data === null) {
-      const newList = new List({
-        title: req.body.title,
-        tasks: [],
-        author: req.body.userId,
-        access: [],
-      });
+  const newList = new List({
+    title: req.body.title,
+    tasks: [],
+    author: req.body.userId,
+    access: [],
+  });
 
-      newList.save().then((newDoc) => {
-        User.findByIdAndUpdate(req.body.userId, {
-          $push: { lists: newDoc._id },
-        }).then(res.json({ result: true, newDoc }));
-      });
+  newList.save().then((newDoc) => {
+    if (newDoc) {
+      res.json({ result: true, newDoc });
     } else {
-      res.json({ result: false, error: "Title List already exists" });
+      res.json({ result: false, error: "List not created" });
     }
   });
 });
@@ -45,22 +41,22 @@ router.delete("/deleteList", (req, res) => {
 
 //créer un document dans la collection tasks
 router.post("/newTask", (req, res) => {
-  Task.findOne({ name: req.body.name }).then((data) => {
-    if (data === null) {
-      const newTask = new Task({
-        name: req.body.name,
-        isFinished: false,
-        author: req.body.listId,
-      });
+  const newTask = new Task({
+    name: req.body.name,
+    isFinished: false,
+    author: req.body.listId,
+  });
 
-      newTask.save().then((newDoc) => {
-        List.findByIdAndUpdate(req.body.listId, {
-          $push: { tasks: newDoc._id },
-        }).then(res.json({ result: true, newDoc }));
-      });
-    } else {
-      res.json({ result: false, error: "Title List already exists" });
-    }
+  newTask.save().then((newDoc) => {
+    List.findByIdAndUpdate(req.body.listId, {
+      $push: { tasks: newDoc._id },
+    }).then((data) => {
+      if (data) {
+        res.json({ result: true, newDoc });
+      } else {
+        res.json({ result: false, error: "Task not created" });
+      }
+    });
   });
 });
 
@@ -116,7 +112,7 @@ router.post("/share", (req, res) => {
         $push: { access: req.body.userId },
       }).then((data) => {
         if (data) {
-          res.json({ result: true, error: "add user" });
+          res.json({ result: true, message: "add user" });
         } else {
           res.json({ result: false, error: "no found list" });
         }

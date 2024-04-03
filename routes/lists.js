@@ -105,7 +105,6 @@ router.get("/one/:listId", (req, res) => {
 router.post("/share", (req, res) => {
   List.findById(req.body.listId).then((data) => {
     if (data.access && data.access.includes(req.body.userId)) {
-      console.log(data.access);
       res.json({ result: false, error: "already share" });
     } else {
       List.findByIdAndUpdate(req.body.listId, {

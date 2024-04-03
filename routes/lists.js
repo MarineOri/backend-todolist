@@ -158,4 +158,15 @@ router.post("/isFinished", (req, res) => {
   });
 });
 
+//*modifier le nom d'une tache
+router.post("/nameTask", (req, res) => {
+  Task.updateOne({ _id: req.body.taskId}, {name: req.body.name}).then((data) => {
+    if(data){
+      res.json({result: true, data});
+    } else {
+      res.json({result: false, error: "Task not found"})
+    }
+  })
+})
+
 module.exports = router;

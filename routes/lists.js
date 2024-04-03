@@ -135,4 +135,27 @@ router.get("/share/:userId", (req, res) => {
     });
 });
 
+//*Mofifier en base de donnée isFinished d'une tache
+router.post("/isFinished", (req, res) => {
+  Task.findById(req.body.taskId).then((data) => {
+    if (data.isFinished) {
+      Task.updateOne({ _id: req.body.taskId }, { isFinished: false }).then(
+        (task) => {
+          if (task) {
+            res.json({ result: true, data });
+          }
+        }
+      );
+    } else {
+      Task.updateOne({ _id: req.body.taskId }, { isFinished: true }).then(
+        (task) => {
+          if (task) {
+            res.json({ result: true, data });
+          }
+        }
+      );
+    }
+  });
+});
+
 module.exports = router;
